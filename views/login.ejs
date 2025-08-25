@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+    <title>Login - UltimateStore</title>
+  </head>
+  <body class="bg-gray-50 dark:bg-gray-900">
+    <section class="min-h-screen flex items-center justify-center">
+      <div class="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-8 max-w-md w-full mx-4">
+        <div class="text-center mb-8">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back</h1>
+          <p class="text-gray-500 dark:text-gray-400">Please sign in to your account</p>
+        </div>
+
+        <% if (locals.error) { %>
+          <div id="error-alert" class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 flex justify-between items-center" role="alert">
+            <span><%= error %></span>
+            <button type="button" class="text-red-600 hover:text-red-900 rounded-lg focus:ring-2 focus:ring-red-400 p-1.5 inline-flex items-center justify-center h-8 w-8" onclick="this.parentElement.remove()">
+              <i class="ri-close-line text-xl"></i>
+            </button>
+          </div>
+        <% } %>
+        
+        <form action="/user/login" method="post" class="space-y-6">
+          <div>
+            <label for="username" class="text-sm font-medium text-gray-900 dark:text-white block mb-2">
+              Username
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="ri-user-line text-gray-400"></i>
+              </div>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                class="pl-10 bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                placeholder="Enter your username"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="password" class="text-sm font-medium text-gray-900 dark:text-white block mb-2">
+              Password
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="ri-lock-line text-gray-400"></i>
+              </div>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="pl-10 bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-3 text-center dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-800 transition-all duration-200"
+          >
+            Sign In
+          </button>
+
+          <div class="text-center text-sm text-gray-500 dark:text-gray-400">
+            Don't have an account? 
+            <a href="/user/register" class="font-medium text-blue-600 hover:underline dark:text-blue-500">
+              Sign up here
+            </a>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+  </body>
+</html>
