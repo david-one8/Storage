@@ -15,48 +15,69 @@ router.post("/register",
   body("username").trim().isLength({ min: 3 }),
   body("password").trim().isLength({ min: 5 }),
   async (req, res) => {
+    try {
+      const errors = validationResult(req);
 
-    const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.render('register', {
+          error: "Please check your input: Email must be valid and at least 13 characters, username at least 3 characters, and password at least 5 characters"
+        });
+      }
 
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        errors: errors.array(),
-        message: "Invalid data",
+      const { username, email, password } = req.body;
+
+      // Check if user already exists
+      const existingUser = await userModel.findOne({
+        $or: [
+          { email: email },
+          { username: username }
+        ]
+      });
+
+      if (existingUser) {
+        return res.render('register', {
+          error: "Username or email already exists"
+        });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const newUser = await userModel.create({
+        username,
+        email,
+        password: hashedPassword,
+      });
+
+      // Create JWT token after successful registration with expiration
+      const token = JWT.sign(
+        {
+          userId: newUser._id,
+          email: newUser.email,
+          username: newUser.username
+        },
+        process.env.JWT_SECRET_KEY,
+        { expiresIn: '36h' }  // Token expires in 36 hours
+      );
+
+      // Set the token in cookie with security options
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 36 * 60 * 60 * 1000, // 36 hours in milliseconds
+        sameSite: 'strict'
+      });
+
+      return res.render('login', {
+        success: "Registration successful! Please log in with your credentials."
+      });
+
+    } catch (error) {
+      console.error("Registration error:", error);
+      return res.render('register', {
+        error: "An error occurred during registration. Please try again."
       });
     }
-
-    const { username, email, password } = req.body;
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = await userModel.create({
-      username,
-      email,
-      password: hashedPassword,
-    });
-
-    // Create JWT token after successful registration with expiration
-    const token = JWT.sign(
-      {
-        userId: newUser._id,
-        email: newUser.email,
-        username: newUser.username
-      },
-      process.env.JWT_SECRET_KEY,
-      { expiresIn: '36h' }  // Token expires in 36 hours
-    );
-
-    // Set the token in cookie with security options
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 36 * 60 * 60 * 1000, // 36 hours in milliseconds
-      sameSite: 'strict'
-    });
-
-    // Redirect to home page
-    res.redirect("/home");
-  }
+  },
 );
 
 /* "/user/login" */

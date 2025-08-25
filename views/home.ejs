@@ -2,118 +2,339 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link
-        href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css"
-        rel="stylesheet"/>
-    <link
-        href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css"
-    rel="stylesheet"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UltimateStore - Your Files</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
+    <style>
+        .gradient-text {
+            background: linear-gradient(45deg, #3b82f6, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e2936 0%, #0f172a 100%);
+        }
+        .glass-effect {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .hover-scale {
+            transition: transform 0.2s ease-in-out;
+        }
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+        .file-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        .file-card:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out forwards;
+        }
+        .stats-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        .sidebar-link {
+            padding: 0.75rem;
+            border-radius: 1rem;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .sidebar-link:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .menu-open {
+            transform: translateX(0) !important;
+        }
+    </style>
 </head>
-<body>
-    <main class="p-4 bg-gray-100 dark:bg-gray-800 h-screen w-screen">
-
-        <button
-            onclick="showPopUp()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-            Upload File
-        </button>
-
-        <div class="pop hidden backdrop-blur fixed top-0 left-0 h-screen w-screen flex items-center justify-center">
-
-            <form
-                action="/upload"
-                method="post"
-                enctype="multipart/form-data"
-            >
-
-                <div class="flex items-center justify-center w-96">
-                    <label
-                        for="dropzone-file"
-                        class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
-                    >
-                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg
-                                class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
-                                aria-hidden="true"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 20 16"
-                            >
-                                <path
-                                    stroke="currentColor"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-                                />
-                            </svg>
-                            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click
-                                    to
-                                    upload</span> or drag and drop</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)
-                            </p>
+<body class="gradient-bg min-h-screen text-white">
+    <!-- Navigation -->
+    <nav class="fixed top-0 z-50 w-full glass-effect border-b border-blue-500/10">
+        <div class="px-4 py-3 lg:px-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center justify-start">
+                    <button type="button" class="inline-flex items-center p-2 text-sm text-blue-400 rounded-lg sm:hidden hover:bg-blue-500/10 focus:outline-none">
+                        <i class="ri-menu-line text-xl"></i>
+                    </button>
+                    <a href="/home" class="flex ml-2 md:mr-24 items-center hover-scale">
+                        <div class="w-10 h-10 flex items-center justify-center bg-blue-500 rounded-xl mr-3">
+                            <i class="ri-cloud-fill text-2xl text-white"></i>
                         </div>
-                        <input
-                            id="dropzone-file"
-                            type="file"
-                            class="hidden"
-                            name="file"
-                        />
-                    </label>
+                        <div>
+                            <span class="block text-xl font-bold gradient-text">UltimateStore</span>
+                            <span class="text-xs text-blue-400">Cloud Storage</span>
+                        </div>
+                    </a>
                 </div>
-
-                <button class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mt-4">
-                    Upload Files
-                </button>
-
-            </form>
-
-            <button
-                class="absolute top-4 right-4 text-gray-500 dark:text-gray-400 text-xl"
-                onclick="hidePopUp()"
-            >
-                <i class="ri-close-line"></i>
-            </button>
-
-        </div>
-
-        <div class="files mt-3 flex flex-col gap-2">
-            <% files.forEach((file)=>{ %>
-            <div class="p-2 cursor-pointer rounded-md bg-gray-300 flex justify-between">
-                <h1><%= file.originalname %></h1>
-                <a
-                    href="/download/<%= file._id %>"
-                    class="text-blue-500 hover:text-blue-700"
-                    download="<%= file.originalname %>"
-                >
-                    <i class="ri-download-line"></i>
-                </a>
-
+                <div class="flex items-center gap-4">
+                    <button onclick="showPopUp()" class="hidden sm:flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg transition-all">
+                        <i class="ri-upload-cloud-line mr-2"></i>
+                        Upload File
+                    </button>
+                    <div class="flex items-center">
+                        <button type="button" class="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 transition-all">
+                            <i class="ri-user-fill text-xl text-blue-400"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <% }) %>
         </div>
+    </nav>
 
+    <!-- Sidebar -->
+    <aside class="fixed top-0 left-0 z-40 w-64 h-screen pt-20 transition-transform -translate-x-full bg-white border-r border-gray-200 sm:translate-x-0 dark:bg-gray-800 dark:border-gray-700">
+        <div class="h-full px-3 pb-4 overflow-y-auto bg-white dark:bg-gray-800">
+            <ul class="space-y-2 font-medium">
+                <li>
+                    <a href="/home" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                        <i class="ri-folder-line text-xl text-gray-500 dark:text-gray-400"></i>
+                        <span class="ml-3">My Files</span>
+                    </a>
+                </li>
+                <li>
+                    <button onclick="showPopUp()" class="flex items-center w-full p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                        <i class="ri-upload-cloud-line text-xl text-gray-500 dark:text-gray-400"></i>
+                        <span class="ml-3">Upload Files</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </aside>
 
+    <!-- Main content -->
+    <main class="p-4 sm:ml-64 pt-20">
+        <div class="p-4 rounded-xl mt-2 animate-slide-in">
+            <!-- Stats cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div class="stats-card rounded-xl p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-blue-400">Total Files</p>
+                            <p class="text-3xl font-bold text-white mt-1"><%= files.length %></p>
+                        </div>
+                        <div class="w-12 h-12 flex items-center justify-center bg-blue-500/20 rounded-xl">
+                            <i class="ri-file-list-line text-2xl text-blue-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload button for mobile -->
+            <div class="sm:hidden mb-6">
+                <button onclick="showPopUp()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-5 rounded-xl text-sm transition-all">
+                    <i class="ri-upload-cloud-line mr-2"></i>
+                    Upload New File
+                </button>
+            </div>
+
+            <!-- Files grid -->
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-white">Your Files</h2>
+                    <div class="text-sm text-blue-400">
+                        <% if (files.length > 0) { %>
+                            <%= files.length %> file<%= files.length === 1 ? '' : 's' %>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <% if (files.length === 0) { %>
+                    <div class="text-center py-12">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-500/10 flex items-center justify-center">
+                            <i class="ri-file-add-line text-3xl text-blue-400"></i>
+                        </div>
+                        <p class="text-lg font-medium text-white mb-2">No files yet</p>
+                        <p class="text-sm text-blue-400 mb-6">Upload your first file to get started</p>
+                        <button onclick="showPopUp()" class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg transition-all">
+                            <i class="ri-upload-cloud-line mr-2"></i>
+                            Upload File
+                        </button>
+                    </div>
+                <% } else { %>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <% files.forEach((file) => { %>
+                            <div class="file-card glass-effect rounded-xl p-4 group animate-slide-in">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-10 h-10 mr-3 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                        <i class="ri-file-text-line text-xl text-blue-400"></i>
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <p class="text-sm font-medium text-white truncate" title="<%= file.originalname %>">
+                                            <%= file.originalname %>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-end">
+                                    <a href="/home/download/<%= file._id %>" 
+                                       class="inline-flex items-center px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg text-sm transition-all" 
+                                       download="<%= file.originalname %>"
+                                       onclick="event.preventDefault(); downloadFile(this.href, '<%= file.originalname %>')">
+                                        <i class="ri-download-line mr-1"></i>
+                                        Download
+                                    </a>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                <% } %>
+            </div>
+        </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
-    <script>
 
+    <!-- Upload Modal -->
+    <div class="pop hidden backdrop-blur-sm fixed top-0 left-0 right-0 z-50 w-full p-4 h-full bg-black/20 flex items-center justify-center">
+        <div class="glass-effect rounded-xl w-full max-w-xl animate-slide-in">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-6 border-b border-blue-500/10">
+                <div>
+                    <h3 class="text-xl font-bold text-white">
+                        Upload File
+                    </h3>
+                    <p class="text-sm text-blue-400 mt-1">Add your files to the cloud</p>
+                </div>
+                <button onclick="hidePopUp()" class="text-blue-400 hover:text-blue-300 rounded-lg p-2 hover:bg-blue-500/10 transition-all">
+                    <i class="ri-close-line text-2xl"></i>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <div class="p-6">
+                <form action="/home/upload" method="post" enctype="multipart/form-data" class="space-y-6">
+                    <div class="flex items-center justify-center w-full">
+                        <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-blue-500/20 border-dashed rounded-xl cursor-pointer hover:border-blue-500/40 hover:bg-blue-500/5 transition-all">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <div class="w-16 h-16 mb-4 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                                    <i class="ri-upload-cloud-2-line text-3xl text-blue-400"></i>
+                                </div>
+                                <p class="mb-2 text-sm text-white"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                                <p class="text-xs text-blue-400">Supported formats: PNG, JPG, JPEG, PDF, DOC, DOCX, XLS, XLSX, TXT</p>
+                                <p id="file-error" class="text-xs text-red-400 mt-2 hidden">This file type is not supported</p>
+                            </div>
+                            <input id="dropzone-file" type="file" name="file" class="hidden" accept=".png,.jpg,.jpeg,.pdf,.doc,.docx,.xls,.xlsx,.txt" />
+                        </label>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="hidePopUp()" class="px-4 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 transition-all text-sm">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            Upload
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal functions
         function showPopUp() {
-            document.querySelector('.pop').style.display = 'flex'
+            document.querySelector('.pop').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            // Reset error message when opening modal
+            document.getElementById('file-error').classList.add('hidden');
+            document.getElementById('dropzone-file').value = '';
         }
 
         function hidePopUp() {
-            document.querySelector('.pop').style.display = 'none'
-
-
+            document.querySelector('.pop').classList.add('hidden');
+            document.body.style.overflow = 'auto';
         }
 
+        // File validation
+        const supportedTypes = [
+            'image/png',
+            'image/jpeg',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'text/plain'
+        ];
+
+        document.getElementById('dropzone-file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const errorElement = document.getElementById('file-error');
+            const submitButton = this.form.querySelector('button[type="submit"]');
+            
+            if (file) {
+                if (!supportedTypes.includes(file.type)) {
+                    errorElement.classList.remove('hidden');
+                    submitButton.disabled = true;
+                    submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+                    return;
+                }
+            }
+            
+            errorElement.classList.add('hidden');
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        });
+
+        // File download function
+        async function downloadFile(url, filename) {
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(downloadUrl);
+            } catch (error) {
+                console.error('Download failed:', error);
+                alert('Failed to download the file. Please try again.');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.querySelector('.pop').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hidePopUp();
+            }
+        });
+
+        // Mobile menu toggle
+        const menuButton = document.querySelector('button[type="button"]');
+        const sidebar = document.getElementById('logo-sidebar');
+        
+        if (menuButton && sidebar) {
+            menuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('menu-open');
+            });
+
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!sidebar.contains(e.target) && !menuButton.contains(e.target)) {
+                    sidebar.classList.remove('menu-open');
+                }
+            });
+        }
     </script>
 </body>
 </html>
