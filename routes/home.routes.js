@@ -7,15 +7,22 @@ const fileModel = require('../models/files.models')
 
 
 router.get('/', authMiddleware, async (req, res) => {
-
     try {
+        const { search } = req.query;
+        
+        // Base query
+        const query = { user: req.user.userId };
+        
+        // Add search filter if specified
+        if (search) {
+            query.originalname = { $regex: search, $options: 'i' };
+        }
 
-        const userFiles = await fileModel.find({
-            user: req.user.userId
-        })
+        const userFiles = await fileModel.find(query);
 
         res.render('home', {
-            files: userFiles
+            files: userFiles,
+            search: search || ''
         });
 
     } catch (err) {
@@ -38,8 +45,9 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
         const newFile = await fileModel.create({
             path: req.file.path,
             originalname: req.file.originalname,
-            user: req.user.userId,
-            cloudinaryUrl: req.file.path // Cloudinary URL is stored in path
+            fileType: req.file.mimetype,
+            fileSize: req.file.size,
+            user: req.user.userId
         });
 
         res.redirect('/home/');

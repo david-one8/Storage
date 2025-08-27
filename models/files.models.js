@@ -11,10 +11,21 @@ const fileSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Original file name is required'],
   },
-
+  fileType: {
+    type: String,
+    required: [true, 'File type is required'],
+  },
+  fileSize: {
+    type: Number,
+    required: [true, 'File size is required'],
+  },
+  uploadDate: {
+    type: Date,
+    default: Date.now
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'users', // user model ka name match hona chahiye
+    ref: 'users',
     required: [true, 'User is required'],
   },
 });
