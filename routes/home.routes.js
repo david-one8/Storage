@@ -10,8 +10,8 @@ router.get('/', authMiddleware, async (req, res) => {
     try {
         const { search } = req.query;
         
-        // Base query
-        const query = { user: req.user.userId };
+    // Base query - exclude soft-deleted files
+    const query = { user: req.user.userId, deleted: { $ne: true } };
         
         // Add search filter if specified
         if (search) {
@@ -92,7 +92,47 @@ router.get('/download/:id', authMiddleware, async (req, res) => {
     }
 });
 
+    // Soft-delete: mark as deleted and set deletedAt so we can offer an undo
     router.post('/delete/:id', authMiddleware, async (req, res) => {
+        try {
+            const file = await fileModel.findOne({ _id: req.params.id, user: req.user.userId });
+            if (!file) return res.status(404).json({ error: 'File not found' });
+
+            if (file.deleted) return res.status(400).json({ error: 'File already deleted' });
+
+            file.deleted = true;
+            file.deletedAt = new Date();
+            await file.save();
+
+            // Respond quickly; permanent deletion handled separately (either by scheduled job or by client calling permanent endpoint)
+            res.json({ success: true });
+        } catch (err) {
+            console.error('Soft delete error:', err);
+            res.status(500).json({ error: 'Server error' });
+        }
+    });
+
+    // Restore (undo) a soft-deleted file
+    router.post('/restore/:id', authMiddleware, async (req, res) => {
+        try {
+            const file = await fileModel.findOne({ _id: req.params.id, user: req.user.userId });
+            if (!file) return res.status(404).json({ error: 'File not found' });
+
+            if (!file.deleted) return res.status(400).json({ error: 'File is not deleted' });
+
+            file.deleted = false;
+            file.deletedAt = null;
+            await file.save();
+
+            res.json({ success: true });
+        } catch (err) {
+            console.error('Restore error:', err);
+            res.status(500).json({ error: 'Server error' });
+        }
+    });
+
+    // Permanent delete: removes from Cloudinary (best-effort) and deletes DB record
+    router.post('/delete/permanent/:id', authMiddleware, async (req, res) => {
         try {
             const file = await fileModel.findOne({ _id: req.params.id, user: req.user.userId });
             if (!file) return res.status(404).json({ error: 'File not found' });
@@ -101,17 +141,16 @@ router.get('/download/:id', authMiddleware, async (req, res) => {
             try {
                 const cloudinary = require('cloudinary').v2;
                 if (file.cloudinaryId) {
-                    // cloudinaryId might be filename or public_id
                     await cloudinary.uploader.destroy(file.cloudinaryId, { resource_type: 'auto' });
                 }
             } catch (cloudErr) {
-                // Log but don't fail the whole operation
                 console.warn('Cloudinary deletion failed or not configured:', cloudErr.message || cloudErr);
             }
 
             await fileModel.deleteOne({ _id: req.params.id });
             res.json({ success: true });
         } catch (err) {
+            console.error('Permanent delete error:', err);
             res.status(500).json({ error: 'Server error' });
         }
     });

@@ -27,6 +27,15 @@ const fileSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  // Soft-delete flag and timestamp for undo support
+  deleted: {
+    type: Boolean,
+    default: false,
+  },
+  deletedAt: {
+    type: Date,
+    default: null,
+  },
   uploadDate: {
     type: Date,
     default: Date.now
