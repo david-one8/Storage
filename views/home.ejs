@@ -270,7 +270,306 @@
         </div>
     </div>
 
+    <!-- Profile Modal -->
+    <div class="profile-modal hidden backdrop-blur-sm fixed top-0 left-0 right-0 z-50 w-full p-4 h-full bg-black/20 flex items-center justify-center">
+        <div class="glass-effect rounded-xl w-full max-w-md animate-slide-in">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-6 border-b border-blue-500/10">
+                <div>
+                    <h3 class="text-xl font-bold text-white">
+                        User Profile
+                    </h3>
+                    <p class="text-sm text-blue-400 mt-1">Manage your account</p>
+                </div>
+                <button onclick="closeProfileModal()" class="text-blue-400 hover:text-blue-300 rounded-lg p-2 hover:bg-blue-500/10 transition-all cursor-pointer">
+                    <i class="ri-close-line text-2xl"></i>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center">
+                            <i class="ri-user-fill text-3xl text-blue-400"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="text-lg font-semibold text-white" id="profile-username">Loading...</h4>
+                                <button onclick="toggleEditUsername()" class="text-blue-400 hover:text-blue-300 text-sm cursor-pointer">
+                                    <i class="ri-edit-2-line"></i>
+                                </button>
+                            </div>
+                            <p class="text-sm text-blue-400" id="profile-email">Loading...</p>
+                            
+                            <!-- Username Edit Section -->
+                            <div id="username-edit-section" class="hidden mt-3 space-y-2">
+                                <input type="text" id="edit-username" class="w-full bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500/50" placeholder="New username">
+                                <div class="flex space-x-2">
+                                    <button onclick="saveUsername()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-all cursor-pointer">Save</button>
+                                    <button onclick="cancelEditUsername()" class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-3 py-1 rounded text-sm transition-all cursor-pointer">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Password Change Section -->
+                    <div class="border-t border-blue-500/10 pt-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h5 class="text-sm font-medium text-white">Change Password</h5>
+                            <button onclick="togglePasswordChange()" class="text-blue-400 hover:text-blue-300 text-sm cursor-pointer">
+                                <i class="ri-lock-line"></i>
+                            </button>
+                        </div>
+                        
+                        <div id="password-change-section" class="hidden space-y-3">
+                            <input type="password" id="current-password" class="w-full bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500/50" placeholder="Current password">
+                            <input type="password" id="new-password" class="w-full bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500/50" placeholder="New password">
+                            <input type="password" id="confirm-password" class="w-full bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500/50" placeholder="Confirm new password">
+                            <div class="flex space-x-2">
+                                <button onclick="savePassword()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-all cursor-pointer">Update Password</button>
+                                <button onclick="cancelPasswordChange()" class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 px-3 py-1 rounded text-sm transition-all cursor-pointer">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-blue-500/10 pt-4">
+                        <button onclick="handleLogout()" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-5 rounded-xl text-sm transition-all flex items-center justify-center cursor-pointer">
+                            <i class="ri-logout-box-line mr-2"></i>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Profile modal functions
+        function openProfileModal() {
+            fetchUserProfile();
+            document.querySelector('.profile-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProfileModal() {
+            document.querySelector('.profile-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        async function fetchUserProfile() {
+            try {
+                const response = await fetch('/user/profile');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('profile-username').textContent = data.username;
+                    document.getElementById('profile-email').textContent = data.email;
+                } else {
+                    console.error('Failed to fetch profile:', data.error);
+                    document.getElementById('profile-username').textContent = 'Error loading profile';
+                    document.getElementById('profile-email').textContent = 'Please try again';
+                }
+            } catch (error) {
+                console.error('Profile fetch error:', error);
+                document.getElementById('profile-username').textContent = 'Error loading profile';
+                document.getElementById('profile-email').textContent = 'Please try again';
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                const response = await fetch('/user/logout', { method: 'POST' });
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    window.location.href = '/user/login';
+                } else {
+                    alert('Logout failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('Logout failed. Please try again.');
+            }
+        }
+
+        // Add click handler to user icon
+        document.addEventListener('DOMContentLoaded', function() {
+            const userIcon = document.querySelector('.ri-user-fill').closest('button');
+            if (userIcon) {
+                userIcon.addEventListener('click', openProfileModal);
+            }
+        });
+
+        // Close profile modal when clicking outside
+        document.querySelector('.profile-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeProfileModal();
+            }
+        });
+
+        // Profile edit functions
+        function toggleEditUsername() {
+            const editSection = document.getElementById('username-edit-section');
+            const currentUsername = document.getElementById('profile-username').textContent;
+            
+            if (editSection.classList.contains('hidden')) {
+                document.getElementById('edit-username').value = currentUsername;
+                editSection.classList.remove('hidden');
+            } else {
+                editSection.classList.add('hidden');
+            }
+        }
+
+        function cancelEditUsername() {
+            document.getElementById('username-edit-section').classList.add('hidden');
+            document.getElementById('edit-username').value = '';
+        }
+
+        async function saveUsername() {
+            const newUsername = document.getElementById('edit-username').value.trim();
+            const currentUsername = document.getElementById('profile-username').textContent;
+            const saveBtn = document.querySelector('#username-edit-section button:first-child');
+            
+            if (!newUsername) {
+                alert('Username cannot be empty');
+                return;
+            }
+            
+            if (newUsername === currentUsername) {
+                cancelEditUsername();
+                return;
+            }
+            
+            if (newUsername.length < 3) {
+                alert('Username must be at least 3 characters long');
+                return;
+            }
+
+            // Show loading state
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                const response = await fetch('/user/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: newUsername })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    document.getElementById('profile-username').textContent = data.username;
+                    cancelEditUsername();
+                    alert('Username updated successfully!');
+                } else {
+                    alert(data.error || 'Failed to update username');
+                }
+            } catch (error) {
+                console.error('Username update error:', error);
+                alert('Failed to update username. Please try again.');
+            } finally {
+                // Reset loading state
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save';
+            }
+        }
+
+        function togglePasswordChange() {
+            const passwordSection = document.getElementById('password-change-section');
+            
+            if (passwordSection.classList.contains('hidden')) {
+                passwordSection.classList.remove('hidden');
+            } else {
+                passwordSection.classList.add('hidden');
+                clearPasswordFields();
+            }
+        }
+
+        function cancelPasswordChange() {
+            document.getElementById('password-change-section').classList.add('hidden');
+            clearPasswordFields();
+        }
+
+        function clearPasswordFields() {
+            document.getElementById('current-password').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-password').value = '';
+        }
+
+        async function savePassword() {
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const saveBtn = document.querySelector('#password-change-section button:first-child');
+            
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                alert('All password fields are required');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                alert('New passwords do not match');
+                return;
+            }
+            
+            if (newPassword.length < 5) {
+                alert('New password must be at least 5 characters long');
+                return;
+            }
+
+            // Show loading state
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Updating...';
+
+            try {
+                const response = await fetch('/user/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        currentPassword: currentPassword,
+                        newPassword: newPassword 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    cancelPasswordChange();
+                    alert('Password updated successfully!');
+                } else {
+                    alert(data.error || 'Failed to update password');
+                }
+            } catch (error) {
+                console.error('Password update error:', error);
+                alert('Failed to update password. Please try again.');
+            } finally {
+                // Reset loading state
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Update Password';
+            }
+        }
+
+        // Add keyboard shortcuts for better UX
+        document.getElementById('edit-username').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveUsername();
+            } else if (e.key === 'Escape') {
+                cancelEditUsername();
+            }
+        });
+
+        // Password fields keyboard shortcuts
+        document.getElementById('confirm-password').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                savePassword();
+            } else if (e.key === 'Escape') {
+                cancelPasswordChange();
+            }
+        });
+
         // Modal functions
         function showPopUp() {
             document.querySelector('.pop').classList.remove('hidden');
