@@ -196,10 +196,28 @@
                                     <div class="w-10 h-10 mr-3 rounded-lg bg-blue-500/10 flex items-center justify-center">
                                         <i class="ri-file-text-line text-xl text-blue-400"></i>
                                     </div>
-                                    <div class="overflow-hidden">
-                                        <p class="text-sm font-medium text-white truncate" title="<%= file.customName && file.customName.trim() ? file.customName : file.originalname %>">
-                                            <%= file.customName && file.customName.trim() ? file.customName : file.originalname %>
-                                        </p>
+                                    <div class="overflow-hidden flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <p class="text-sm font-medium text-white truncate flex-1" id="filename-display-<%= file._id %>" title="<%= file.customName && file.customName.trim() ? file.customName : file.originalname %>">
+                                                <%= file.customName && file.customName.trim() ? file.customName : file.originalname %>
+                                            </p>
+                                            <button onclick="startEditFileName('<%= file._id %>')" class="text-blue-400 hover:text-blue-300 opacity-0 group-hover:opacity-100 transition-opacity text-xs cursor-pointer" title="Edit file name">
+                                                <i class="ri-edit-2-line"></i>
+                                            </button>
+                                        </div>
+                                        <!-- Hidden edit input -->
+                                        <div id="filename-edit-<%= file._id %>" class="hidden mt-2 flex gap-2 items-center">
+                                            <input type="text" id="edit-input-<%= file._id %>" class="flex-1 min-w-0 bg-blue-500/10 border border-blue-500/20 rounded px-2 py-1 text-white text-sm focus:outline-none focus:border-blue-500/50" 
+                                                   value="<%= file.customName && file.customName.trim() ? file.customName : file.originalname %>">
+                                            <!-- Save (check) button: larger on mobile, slightly smaller on md+ -->
+                                            <button onclick="saveFileName('<%= file._id %>')" aria-label="Save filename" title="Save" class="w-10 h-10 md:w-9 md:h-9 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center transition-all shadow-sm cursor-pointer flex-shrink-0">
+                                                <i class="ri-check-line text-lg"></i>
+                                            </button>
+                                            <!-- Cancel (cross) button: larger on mobile, slightly smaller on md+ -->
+                                            <button onclick="cancelEditFileName('<%= file._id %>')" aria-label="Cancel edit" title="Cancel" class="w-10 h-10 md:w-9 md:h-9 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-all shadow-sm cursor-pointer flex-shrink-0">
+                                                <i class="ri-close-line text-lg"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="flex items-center justify-end gap-2">
@@ -808,6 +826,97 @@
                     toast.remove();
                 }, PERMANENT_DELETE_MS);
             });
+        });
+
+        // File name editing functions
+        function startEditFileName(fileId) {
+            const displayElement = document.getElementById(`filename-display-${fileId}`);
+            const editElement = document.getElementById(`filename-edit-${fileId}`);
+            const editInput = document.getElementById(`edit-input-${fileId}`);
+            
+            // Hide display, show edit input
+            displayElement.style.display = 'none';
+            editElement.classList.remove('hidden');
+            
+            // Focus and select the input
+            editInput.focus();
+            editInput.select();
+        }
+
+        function cancelEditFileName(fileId) {
+            const displayElement = document.getElementById(`filename-display-${fileId}`);
+            const editElement = document.getElementById(`filename-edit-${fileId}`);
+            
+            // Show display, hide edit input
+            displayElement.style.display = 'block';
+            editElement.classList.add('hidden');
+        }
+
+        async function saveFileName(fileId) {
+            const editInput = document.getElementById(`edit-input-${fileId}`);
+            const displayElement = document.getElementById(`filename-display-${fileId}`);
+            const saveBtn = editInput.parentElement.querySelector('button:first-of-type');
+            
+            const newName = editInput.value.trim();
+            
+            if (!newName) {
+                alert('File name cannot be empty');
+                return;
+            }
+            
+            if (newName.length > 255) {
+                alert('File name is too long (max 255 characters)');
+                return;
+            }
+
+            // Show loading state
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                const response = await fetch(`/home/update/${fileId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ customName: newName })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Update the display
+                    displayElement.textContent = data.customName;
+                    displayElement.title = data.customName;
+                    
+                    // Hide edit input
+                    cancelEditFileName(fileId);
+                    
+                    // Show success message
+                    alert('File name updated successfully!');
+                } else {
+                    alert(data.error || 'Failed to update file name');
+                }
+            } catch (error) {
+                console.error('File name update error:', error);
+                alert('Failed to update file name. Please try again.');
+            } finally {
+                // Reset loading state
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save';
+            }
+        }
+
+        // Add keyboard shortcuts for file name editing
+        document.addEventListener('keydown', function(e) {
+            if (e.target.id.startsWith('edit-input-')) {
+                const fileId = e.target.id.replace('edit-input-', '');
+                
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveFileName(fileId);
+                } else if (e.key === 'Escape') {
+                    cancelEditFileName(fileId);
+                }
+            }
         });
     </script>
 </body>

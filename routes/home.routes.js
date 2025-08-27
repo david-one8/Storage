@@ -155,6 +155,34 @@ router.get('/download/:id', authMiddleware, async (req, res) => {
         }
     });
 
+    // Update file name
+    router.put('/update/:id', authMiddleware, async (req, res) => {
+        try {
+            const file = await fileModel.findOne({ _id: req.params.id, user: req.user.userId });
+            if (!file) return res.status(404).json({ error: 'File not found' });
 
+            const { customName } = req.body;
+            
+            if (!customName || customName.trim().length === 0) {
+                return res.status(400).json({ error: 'File name cannot be empty' });
+            }
+
+            if (customName.trim().length > 255) {
+                return res.status(400).json({ error: 'File name is too long (max 255 characters)' });
+            }
+
+            file.customName = customName.trim();
+            await file.save();
+
+            res.json({ 
+                success: true, 
+                message: 'File name updated successfully',
+                customName: file.customName
+            });
+        } catch (err) {
+            console.error('File update error:', err);
+            res.status(500).json({ error: 'Server error' });
+        }
+    });
 
 module.exports = router;
