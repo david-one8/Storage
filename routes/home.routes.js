@@ -44,13 +44,16 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
 
 
         const customName = req.body.customFilename && req.body.customFilename.trim() ? req.body.customFilename.trim() : '';
+        // For Cloudinary storage, multer provides req.file.path (URL) and req.file.filename or req.file.public_id depending on lib
+        const cloudinaryId = (req.file && (req.file.filename || req.file.public_id || req.file.originalname)) || '';
         const newFile = await fileModel.create({
             path: req.file.path,
             originalname: req.file.originalname,
             fileType: req.file.mimetype,
             fileSize: req.file.size,
             user: req.user.userId,
-            customName: customName
+            customName: customName,
+            cloudinaryId: cloudinaryId
         });
 
         res.redirect('/home/');
@@ -89,6 +92,29 @@ router.get('/download/:id', authMiddleware, async (req, res) => {
     }
 });
 
+    router.post('/delete/:id', authMiddleware, async (req, res) => {
+        try {
+            const file = await fileModel.findOne({ _id: req.params.id, user: req.user.userId });
+            if (!file) return res.status(404).json({ error: 'File not found' });
+
+            // Try deleting from Cloudinary when possible
+            try {
+                const cloudinary = require('cloudinary').v2;
+                if (file.cloudinaryId) {
+                    // cloudinaryId might be filename or public_id
+                    await cloudinary.uploader.destroy(file.cloudinaryId, { resource_type: 'auto' });
+                }
+            } catch (cloudErr) {
+                // Log but don't fail the whole operation
+                console.warn('Cloudinary deletion failed or not configured:', cloudErr.message || cloudErr);
+            }
+
+            await fileModel.deleteOne({ _id: req.params.id });
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ error: 'Server error' });
+        }
+    });
 
 
 

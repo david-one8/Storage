@@ -23,6 +23,10 @@ const fileSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  cloudinaryId: {
+    type: String,
+    default: ''
+  },
   uploadDate: {
     type: Date,
     default: Date.now
