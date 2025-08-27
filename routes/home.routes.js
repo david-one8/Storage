@@ -42,12 +42,15 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
             });
         }
 
+
+        const customName = req.body.customFilename && req.body.customFilename.trim() ? req.body.customFilename.trim() : '';
         const newFile = await fileModel.create({
             path: req.file.path,
             originalname: req.file.originalname,
             fileType: req.file.mimetype,
             fileSize: req.file.size,
-            user: req.user.userId
+            user: req.user.userId,
+            customName: customName
         });
 
         res.redirect('/home/');

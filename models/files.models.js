@@ -19,6 +19,10 @@ const fileSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'File size is required'],
   },
+  customName: {
+    type: String,
+    default: ''
+  },
   uploadDate: {
     type: Date,
     default: Date.now
